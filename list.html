@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <script>
+        if (localStorage.getItem('count') == null) {
+            localStorage.setItem('count', JSON.stringify(1));
+        }
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer List</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="list">
+    <h2>Customer List</h2>
+    <button id="add-customer-button" onclick="navigateToAddPage(false, '')">Add Customer</button>
+    <table id="customerTable">
+        <thead>
+            <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Address</th>
+                <th>City</th>
+                <th>Street</th>
+                <th>State</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+    </table>
+    <script>
+
+        const count = JSON.parse(localStorage.getItem('count'));
+        if (count == 0) {
+            localStorage.setItem('count', JSON.stringify(1));
+            location.reload(true);
+        }
+        else {
+            loadData();
+        }
+
+        const customerTable = document.getElementById("customerTable");
+
+        function navigateToAddPage(isUpdate, customer) {
+            const jsonData = encodeURIComponent(JSON.stringify(customer));
+            const url = `add.html${isUpdate ? `?data=${jsonData}` : ''}`;
+            window.location.href = url;
+        }
+
+        function loadData() {
+
+            localStorage.setItem('count', JSON.stringify(0));
+
+            const bearerToken = localStorage.getItem("bearerToken");
+
+            if (bearerToken) {
+                const apiURL = "http://localhost:3000/customer-list";
+
+                fetch(apiURL, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${bearerToken}`
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error("Network response was not ok");
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(customer => {
+                            console.log(customer['first_name']);
+                            const row = customerTable.insertRow(-1);
+                            const fields = ["first_name", "last_name", "street", "address", "city", "state", "email", "phone"];
+
+                            fields.forEach(field => {
+                                const cell = row.insertCell();
+                                cell.innerHTML = customer[field];
+                            });
+
+                            const actionCell = row.insertCell();
+                            actionCell.innerHTML = '<i class="fas fa-edit edit-customer"></i> <i class="fas fa-minus delete-customer"></i>';
+                            const editButton = actionCell.querySelector('.edit-customer');
+                            const deleteButton = actionCell.querySelector('.delete-customer');
+
+                            editButton.addEventListener("click", () => {
+                                navigateToAddPage(true, customer);
+                            });
+
+                            deleteButton.addEventListener("click", () => {
+                                fetch(`http://localhost:3000/delete-customer/${customer.uuid}`, {
+                                    method: "POST",
+                                    headers: {
+                                        "Authorization": `Bearer ${bearerToken}`
+                                    }
+                                })
+                                    .then(response => {
+                                        if (!response.ok) {
+                                            throw new Error("Delete request failed");
+                                        }
+                                    })
+                                    .then(data => {
+                                        customerTable.deleteRow(row.rowIndex);
+                                        alert("Delete request successful");
+                                    })
+                                    .catch(error => {
+                                        console.error("An error occurred while deleting the customer:", error);
+                                    });
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.error("An error occurred while fetching customer data:", error);
+                    });
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Page</title>
+</head>
+<body>
+    <h1>Login Page</h1>
+    <form id="loginForm">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br><br>
+        <input type="submit" value="Login">
+    </form>
+
+    <p id="message"></p>
+
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            var username = document.getElementById("username").value;
+            var password = document.getElementById("password").value;
+
+            var apiURL = "http://localhost:3000/login"; // Use your local proxy server URL
+
+            var loginData = {
+                login_id: username,
+                password: password
+            };
+
+            fetch(apiURL, {
+                method: "POST",
+                body: JSON.stringify(loginData),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("hello",data);
+                if (data.access_token) {
+                    document.getElementById("message").textContent = "Login successful!";
+                    var bearerToken = data.access_token;
+                    localStorage.setItem("bearerToken", bearerToken);
+                    window.location.href = "list.html";
+                } else {
+                    document.getElementById("message").textContent = "Login failed. Please check your credentials.";
+                }
+            })
+            .catch(error => {
+                document.getElementById("message").textContent = "An error occurred: " + error;
+                console.error(error);
+            });
+        });
+    </script>
+</body>
+</html>

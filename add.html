@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Customer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="add">
+    <h3>Customer Details</h3>
+    <form id="customer-form">
+        <div class="form-group">
+            <input type="text" id="first_name" name="first_name" placeholder="First Name" required>
+            <input type="text" id="last_name" name="last_name" placeholder="Last Name" required>
+        </div>
+        <div class="form-group">
+            <input type="text" id="street" name="street" placeholder="Street">
+            <input type="text" id="address" name="address" placeholder="Address">
+        </div>
+        <div class="form-group">
+            <input type="text" id="city" name="city" placeholder="City">
+            <input type="text" id="state" name="state" placeholder="State">
+        </div>
+        <div class="form-group">
+            <input type="email" id="email" name="email" placeholder="Email">
+            <input type="number" id="phone" name="phone" placeholder="Phone">
+        </div>
+        <button type="submit" id="submitButton">Submit</button>
+    </form>
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        const receivedUuid = JSON.parse(decodeURIComponent(urlParams.get('data')));
+        const customerForm = document.getElementById('customer-form');
+        if (receivedUuid === null) {
+            document.getElementById('submitButton').innerHTML = 'Submit';
+        } else {
+            var firstName = document.getElementById('first_name');
+            var lastName = document.getElementById('last_name');
+
+            firstName.setAttribute('placeholder', receivedUuid.first_name);
+            firstName.required = false;
+
+            lastName.setAttribute('placeholder', receivedUuid.last_name);
+            lastName.required = false;
+
+            if (receivedUuid.street != null) {
+                document.getElementById('street').setAttribute('placeholder', receivedUuid.street);
+            }
+            if (receivedUuid.address != null) {
+                document.getElementById('address').setAttribute('placeholder', receivedUuid.address);
+            }
+            if (receivedUuid.city != null) {
+                document.getElementById('city').setAttribute('placeholder', receivedUuid.city);
+            }
+            if (receivedUuid.state != null) {
+                document.getElementById('state').setAttribute('placeholder', receivedUuid.state);
+            }
+            if (receivedUuid.email != null) {
+                document.getElementById('email').setAttribute('placeholder', receivedUuid.email);
+            }
+            if (receivedUuid.phone != null) {
+                document.getElementById('phone').setAttribute('placeholder', receivedUuid.phone);
+            }
+            document.getElementById('submitButton').innerHTML = 'Update';
+        }
+
+        customerForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const bearerToken = localStorage.getItem("bearerToken");
+            const formData = new FormData(customerForm);
+            const customerData = {};
+            formData.forEach((value, id) => {
+                if (value != '') {
+                    customerData[id] = value;
+                }
+
+            });
+
+            if (receivedUuid === null) {
+
+                try {
+
+                    const response = await fetch("http://localhost:3000/create-customer", {
+                        method: 'POST',
+                        body: JSON.stringify(customerData),
+                        headers: {
+                            'Content-Type': 'application/json',
+                            "Authorization": `Bearer ${bearerToken}`
+                        },
+                    });
+
+
+                    if (response.status === 201) {
+                        // Customer creation successful
+                        alert('Customer created successfully');
+                        // window.location.href = "list.html";
+                        goBack();
+                    } else if (response.status === 400) {
+                        // Handle validation errors or other failures
+                        const errorData = await response.json();
+                        alert('Customer creation failed: ' + errorData.error);
+                    } else {
+                        // Handle other status codes as needed
+                        alert('An error occurred during customer creation');
+                    }
+                } catch (error) {
+                    alert('An error occurred during customer creation');
+                }
+            }
+            else {
+
+                try {
+                    const response = await fetch(`http://localhost:3000/update-customer/${receivedUuid.uuid}`, {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${bearerToken}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(customerData)
+                    });
+
+                    if (response.status === 200) {
+                        alert("Update request successful");
+                        goBack();
+
+                    } else if (response.status === 400) {
+                        // Handle validation errors or other failures
+                        const errorData = await response.json();
+                        alert(errorData.error);
+                    } else if (response.status === 500) {
+                        // Handle validation errors or other failures
+                        const errorData = await response.json();
+                        alert('UUID not found: ' + errorData.error);
+                    }
+
+                }
+                catch (error) {
+                    alert('An error occurred during customer update');
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
