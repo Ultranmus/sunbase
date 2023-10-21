@@ -2,6 +2,7 @@
 
 This assignment involves integrating several APIs to create a basic web application with three main screens: Login, Customer List, and Customer Details.
 - View demo video [here](https://firebasestorage.googleapis.com/v0/b/github-895c7.appspot.com/o/assignment%2Fsunbasedata%2FLogin%20Page%20-%20Google%20Chrome%202023-10-21%2018-35-57.zip?alt=media&token=48d340f5-7d67-46d6-941f-2e048c44bf6b&_gl=1*oz5bek*_ga*MjA3OTcyNTA1Ni4xNjkzNzQxMzYy*_ga_CW55HF8NVT*MTY5Nzg5NjA0MC4zNS4xLjE2OTc4OTYyMzkuMTguMC4w)
+- Note that Demo video is in zip format
 
 ## Authentication
 
